@@ -1,36 +1,48 @@
 import React, { useEffect, useState } from "react";
-import ToolbarGroup from "./ToolBarGroup";
-import ColorPicker from "./ColorPicker";
-import {
-  Bold,
-  Italic,
-  Underline,
-  List,
-  ListOrdered,
-  CheckSquare,
-  Table,
-  Image,
-  AlignLeft,
-  AlignCenter,
-  AlignRight,
-  ChevronRight,
-  ChevronLeft,
-  Type,
-  Palette,
-  Droplet,
-  Heading1,
-  Heading2,
-  Heading3,
-  Code,
-} from "lucide-react";
-import TableToolbar from "./Table";
+
+import * as pdfjsLib from "pdfjs-dist";
+// Explicitly set the worker source using a relative path
+import pdfWorker from "pdfjs-dist/build/pdf.worker?worker";
+
+import TextFormattingGroup from "./Tools/TextFormattingGroup";
+import FontControlsGroup from "./Tools/FontControlsGroup";
+import ColorControlsGroup from "./Tools/ColorControlsGroup";
+import ParagraphFormattingGroup from "./Tools/ParagraphFormattingGroup";
+import HeadingsGroup from "./Tools/HeadingGroup";
+import ContentInsertionGroup from "./Tools/ContentInsertGroup";
 import "prismjs";
-import "prismjs/themes/prism.css"; // You can use "prism-tomorrow.css" for dark mode
+import "prismjs/themes/prism.css";
+
+// ✅ Required for languages like Java, C, and PHP
+import "prismjs/components/prism-clike";
+
+// ✅ Import languages
 import "prismjs/components/prism-javascript";
 import "prismjs/components/prism-python";
 import "prismjs/components/prism-css";
-// Add other languages as needed
+import "prismjs/components/prism-markup";
+import "prismjs/components/prism-java"; // Clike required
+import "prismjs/components/prism-c"; // Clike required
+import "prismjs/components/prism-cpp"; // Clike required
+import "prismjs/components/prism-go";
+import "prismjs/components/prism-rust";
+import "prismjs/components/prism-typescript";
+import "prismjs/components/prism-json";
+import "prismjs/components/prism-bash";
+import "prismjs/components/prism-sql";
+import "prismjs/components/prism-yaml";
+import "prismjs/components/prism-markdown";
+import "prismjs/components/prism-dart";
+import "prismjs/components/prism-lua";
+import "prismjs/components/prism-kotlin";
+import "prismjs/components/prism-ruby";
+import "prismjs/components/prism-swift";
+import "prismjs/components/prism-perl";
+import "prismjs/components/prism-matlab";
+
 import Prism from "prismjs";
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
 const Toolbar = ({ editorRef }) => {
   const [isBold, setIsBold] = useState(false);
@@ -51,51 +63,6 @@ const Toolbar = ({ editorRef }) => {
   const toggleBold = () => {
     execCommand("bold");
     setIsBold(!isBold);
-  };
-
-  useEffect(() => {
-    Prism.highlightAll();
-  }, []);
-
-  const insertCodeBlock = () => {
-    const selection = window.getSelection();
-    if (!selection.rangeCount) return;
-
-    const range = selection.getRangeAt(0);
-    const container = document.createElement("div");
-    container.contentEditable = false; // Make the container non-editable
-
-    // Create a new instance of the CodeEditor component
-    const codeEditor = document.createElement("div");
-    codeEditor.innerHTML = `
-    <div
-      contentEditable="true"
-      spellCheck="false"
-      style="
-        font-family: monospace;
-        background: #1e1e1e;
-        color: #d4d4d4;
-        padding: 10px;
-        min-height: 200px;
-        border-radius: 5px;
-        outline: none;
-        white-space: pre-wrap;
-        overflow-wrap: break-word;
-      "
-    ></div>
-  `;
-
-    container.appendChild(codeEditor);
-    range.deleteContents();
-    range.insertNode(container);
-
-    // Move the cursor inside the new CodeEditor
-    const newRange = document.createRange();
-    const sel = window.getSelection();
-    newRange.setStart(codeEditor, 0);
-    newRange.setEnd(codeEditor, 0);
-    sel.removeAllRanges();
-    sel.addRange(newRange);
   };
 
   const toggleItalic = () => {
@@ -174,6 +141,7 @@ const Toolbar = ({ editorRef }) => {
       "insert" + (type === "ordered" ? "OrderedList" : "UnorderedList")
     );
   };
+
   const insertCheckboxList = () => {
     const selection = window.getSelection();
     if (!selection.rangeCount) return;
@@ -209,218 +177,6 @@ const Toolbar = ({ editorRef }) => {
     selection.addRange(newRange);
   };
 
-  useEffect(() => {
-    const handleEnterPress = (event) => {
-      if (event.key === "Enter") {
-        const selection = window.getSelection();
-        if (!selection.rangeCount) return;
-
-        let node = selection.anchorNode;
-        if (!node) return;
-        if (node.nodeType === Node.TEXT_NODE) {
-          node = node.parentElement;
-        }
-
-        // Check if the current selection is inside a code block
-        const codeBlock = node.closest("code");
-        if (
-          codeBlock &&
-          codeBlock.parentElement.tagName.toLowerCase() === "pre"
-        ) {
-          event.preventDefault();
-          // Insert a newline in the current code block instead of creating a new block
-          document.execCommand("insertText", false, "\n");
-          // Re-highlight the code block if needed
-          Prism.highlightElement(codeBlock);
-          return;
-        }
-
-        // Existing behavior for list items
-        const listItem = node.closest("li");
-        if (!listItem) return;
-
-        event.preventDefault();
-
-        const newListItem = document.createElement("li");
-        newListItem.contentEditable = "true";
-        const parentList = listItem.closest("ul");
-        const isChecklist = parentList?.querySelector("input[type='checkbox']");
-
-        if (isChecklist) {
-          newListItem.classList.add("checkbox-item");
-          const checkbox = document.createElement("input");
-          checkbox.type = "checkbox";
-          checkbox.style.marginRight = "8px";
-          const textNode = document.createElement("span");
-          textNode.contentEditable = "true";
-          textNode.style.flex = "1";
-          textNode.innerHTML = "&nbsp;";
-          newListItem.appendChild(checkbox);
-          newListItem.appendChild(textNode);
-        } else {
-          newListItem.innerHTML = "&nbsp;";
-        }
-
-        listItem.parentNode.insertBefore(newListItem, listItem.nextSibling);
-        selection.removeAllRanges();
-        const newRange = document.createRange();
-        newRange.selectNodeContents(newListItem);
-        newRange.collapse(false);
-        selection.addRange(newRange);
-      }
-    };
-
-    document.addEventListener("keydown", handleEnterPress);
-    return () => {
-      document.removeEventListener("keydown", handleEnterPress);
-    };
-  }, []);
-
-  useEffect(() => {
-    const handleEnterPress = (event) => {
-      if (event.key === "Enter") {
-        const selection = window.getSelection();
-        if (!selection.rangeCount) return;
-
-        let node = selection.anchorNode;
-        if (!node) return;
-
-        if (node.nodeType === Node.TEXT_NODE) {
-          node = node.parentElement;
-        }
-
-        const listItem = node.closest("li");
-        if (!listItem) return;
-
-        const parentList = listItem.closest("ul");
-
-        event.preventDefault(); // Prevent default Enter behavior
-
-        const newListItem = document.createElement("li");
-        newListItem.contentEditable = "true";
-
-        // Check if the current list is a checklist (contains checkboxes)
-        const isChecklist = parentList?.querySelector("input[type='checkbox']");
-
-        if (isChecklist) {
-          newListItem.classList.add("checkbox-item");
-
-          const checkbox = document.createElement("input");
-          checkbox.type = "checkbox";
-          checkbox.style.marginRight = "8px";
-
-          const textNode = document.createElement("span");
-          textNode.contentEditable = "true";
-          textNode.style.flex = "1";
-          textNode.innerHTML = "&nbsp;"; // Empty space for user to type
-
-          newListItem.appendChild(checkbox);
-          newListItem.appendChild(textNode);
-        } else {
-          newListItem.innerHTML = "&nbsp;"; // Standard list item
-        }
-
-        listItem.parentNode.insertBefore(newListItem, listItem.nextSibling);
-
-        // Move cursor inside the new list item
-        selection.removeAllRanges();
-        const newRange = document.createRange();
-        newRange.selectNodeContents(newListItem);
-        newRange.collapse(false);
-        selection.addRange(newRange);
-      }
-    };
-
-    document.addEventListener("keydown", handleEnterPress);
-
-    return () => {
-      document.removeEventListener("keydown", handleEnterPress);
-    };
-  }, []);
-
-  useEffect(() => {
-    const handlePaste = (event) => {
-      const clipboardData = event.clipboardData || window.clipboardData;
-      const items = clipboardData.items;
-
-      for (let i = 0; i < items.length; i++) {
-        if (items[i].type.indexOf("image") !== -1) {
-          event.preventDefault(); // Prevent default paste behavior
-
-          const file = items[i].getAsFile();
-          const reader = new FileReader();
-
-          reader.onload = (e) => {
-            const wrapper = document.createElement("div");
-            wrapper.contentEditable = false;
-            wrapper.style.position = "relative";
-            wrapper.style.display = "inline-block";
-            wrapper.style.border = "1px solid #ccc";
-            wrapper.style.resize = "both";
-            wrapper.style.overflow = "hidden";
-            wrapper.style.maxWidth = "100%";
-
-            const img = document.createElement("img");
-            img.src = e.target.result;
-            img.style.width = "100%"; // Allow resizing
-            img.style.height = "auto";
-
-            const resizer = document.createElement("div");
-            resizer.style.width = "10px";
-            resizer.style.height = "10px";
-            resizer.style.background = "blue";
-            resizer.style.position = "absolute";
-            resizer.style.right = "0";
-            resizer.style.bottom = "0";
-            resizer.style.cursor = "se-resize";
-
-            resizer.addEventListener("mousedown", (e) => {
-              e.preventDefault();
-              document.addEventListener("mousemove", resizeImage);
-              document.addEventListener("mouseup", () => {
-                document.removeEventListener("mousemove", resizeImage);
-              });
-            });
-
-            function resizeImage(e) {
-              const rect = wrapper.getBoundingClientRect();
-              wrapper.style.width = e.clientX - rect.left + "px";
-              wrapper.style.height = e.clientY - rect.top + "px";
-            }
-
-            wrapper.appendChild(img);
-            wrapper.appendChild(resizer);
-
-            // Insert the wrapper at the cursor position
-            insertNodeAtCursor(wrapper);
-          };
-
-          reader.readAsDataURL(file);
-        }
-      }
-    };
-
-    const insertNodeAtCursor = (node) => {
-      const selection = window.getSelection();
-      if (!selection.rangeCount) return;
-
-      const range = selection.getRangeAt(0);
-      range.deleteContents();
-      range.insertNode(node);
-
-      range.setStartAfter(node);
-      range.setEndAfter(node);
-      selection.removeAllRanges();
-      selection.addRange(range);
-    };
-
-    document.addEventListener("paste", handlePaste);
-
-    return () => {
-      document.removeEventListener("paste", handlePaste);
-    };
-  }, []);
-
   const insertImage = () => {
     const url = prompt("Enter the image URL:", "");
     if (url) {
@@ -430,180 +186,243 @@ const Toolbar = ({ editorRef }) => {
       execCommand("insertHTML", img.outerHTML);
     }
   };
+  const insertCodeBlock = () => {
+    const selection = window.getSelection();
+    if (!selection.rangeCount) return;
+
+    const range = selection.getRangeAt(0);
+
+    const wrapper = document.createElement("div");
+    wrapper.style.position = "relative";
+    wrapper.style.marginBottom = "10px";
+
+    const select = document.createElement("select");
+    const languages = [
+      "javascript",
+      "python",
+      "css",
+      "html",
+      "java",
+      "c",
+      "cpp",
+    ];
+    select.style.marginBottom = "5px";
+    select.style.padding = "5px";
+    select.style.borderRadius = "4px";
+    select.style.border = "1px solid #ccc";
+    select.style.cursor = "pointer";
+    select.style.fontSize = "14px";
+
+    languages.forEach((lang) => {
+      const option = document.createElement("option");
+      option.value = lang;
+      option.textContent = lang.toUpperCase();
+      select.appendChild(option);
+    });
+
+    const pre = document.createElement("pre");
+    pre.style.backgroundColor = "#f5f5f5";
+    pre.style.padding = "10px";
+    pre.style.borderRadius = "5px";
+    pre.style.overflowX = "auto"; // Enable horizontal scrolling if needed
+    pre.style.display = "block";
+    pre.style.whiteSpace = "pre-wrap"; // Ensure text wrapping
+    pre.style.wordBreak = "break-word"; // Prevent long words from overflowing
+
+    const code = document.createElement("code");
+    code.contentEditable = "true";
+    code.style.display = "block";
+    code.style.outline = "none";
+    code.style.border = "none";
+    code.style.padding = "8px";
+    code.style.width = "100%";
+    code.style.whiteSpace = "pre-wrap"; // Reapply wrapping after highlight
+    code.style.wordBreak = "break-word"; // Prevent overflow
+
+    let currentLanguage = "javascript";
+    pre.className = `language-${currentLanguage}`;
+    code.className = `language-${currentLanguage}`;
+    code.textContent = "console.log('Hello, World!');";
+
+    pre.appendChild(code);
+
+    select.addEventListener("change", (event) => {
+      const newLang = event.target.value;
+      pre.className = `language-${newLang}`;
+      code.className = `language-${newLang}`;
+      Prism.highlightElement(code);
+
+      // Reapply wrapping after highlighting
+      setTimeout(() => {
+        pre.style.whiteSpace = "pre-wrap";
+        pre.style.wordBreak = "break-word";
+        code.style.whiteSpace = "pre-wrap";
+        code.style.wordBreak = "break-word";
+      }, 0); // Timeout ensures styles apply after Prism modifies the code
+    });
+
+    wrapper.appendChild(select);
+    wrapper.appendChild(pre);
+
+    range.deleteContents();
+    range.insertNode(wrapper);
+
+    Prism.highlightElement(code);
+
+    // Ensure wrapping after first highlight
+    setTimeout(() => {
+      pre.style.whiteSpace = "pre-wrap";
+      pre.style.wordBreak = "break-word";
+      code.style.whiteSpace = "pre-wrap";
+      code.style.wordBreak = "break-word";
+    }, 0);
+
+    const p = document.createElement("p");
+    p.innerHTML = "<br>";
+    wrapper.insertAdjacentElement("afterend", p);
+
+    selection.removeAllRanges();
+    const newRange = document.createRange();
+    newRange.selectNodeContents(code);
+    newRange.collapse(false);
+    selection.addRange(newRange);
+  };
+
+  const renderPDFPreview = async (file) => {
+    const reader = new FileReader();
+    reader.readAsArrayBuffer(file);
+
+    return new Promise((resolve, reject) => {
+      reader.onload = async () => {
+        try {
+          const pdfData = new Uint8Array(reader.result);
+          const pdf = await pdfjsLib.getDocument({ data: pdfData }).promise;
+          const canvas = document.createElement("canvas");
+
+          const page = await pdf.getPage(1); // Render only the first page
+          const viewport = page.getViewport({ scale: 1.5 });
+          const context = canvas.getContext("2d");
+
+          canvas.width = viewport.width;
+          canvas.height = viewport.height;
+
+          await page.render({ canvasContext: context, viewport }).promise;
+
+          resolve(canvas);
+        } catch (error) {
+          reject(error);
+        }
+      };
+
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
+  const insertAttachment = async (files) => {
+    if (!files || files.length === 0) return;
+
+    const selection = window.getSelection();
+    if (!selection.rangeCount) return;
+    const range = selection.getRangeAt(0);
+
+    const attachmentContainer = document.createElement("div");
+    attachmentContainer.style.display = "flex";
+    attachmentContainer.style.flexDirection = "column";
+    attachmentContainer.style.margin = "10px 0";
+    attachmentContainer.style.border = "1px solid #ddd";
+    attachmentContainer.style.padding = "10px";
+    attachmentContainer.style.borderRadius = "5px";
+    attachmentContainer.style.background = "#f9f9f9";
+
+    for (const file of files) {
+      const fileType = file.type.split("/")[0];
+      let element;
+
+      if (fileType === "image") {
+        element = document.createElement("img");
+        element.src = URL.createObjectURL(file);
+        element.style.maxWidth = "100%";
+        element.style.borderRadius = "5px";
+        element.style.marginBottom = "10px";
+      } else if (fileType === "video") {
+        element = document.createElement("video");
+        element.src = URL.createObjectURL(file);
+        element.controls = true;
+        element.style.maxWidth = "100%";
+        element.style.marginBottom = "10px";
+      } else if (fileType === "audio") {
+        element = document.createElement("audio");
+        element.src = URL.createObjectURL(file);
+        element.controls = true;
+        element.style.marginBottom = "10px";
+      } else if (file.type === "application/pdf") {
+        element = await renderPDFPreview(file);
+      } else {
+        element = document.createElement("div");
+        element.style.display = "flex";
+        element.style.alignItems = "center";
+        element.style.marginBottom = "5px";
+
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(file);
+        link.textContent = `📎 ${file.name}`;
+        link.target = "_blank";
+        link.style.color = "#007bff";
+        link.style.textDecoration = "none";
+        link.style.marginLeft = "5px";
+
+        element.appendChild(link);
+      }
+
+      attachmentContainer.appendChild(element);
+    }
+
+    range.insertNode(attachmentContainer);
+    range.insertNode(document.createElement("br"));
+
+    selection.removeAllRanges();
+  };
 
   return (
     <div className="toolbar flex flex-wrap gap-1 p-2 bg-gray-50 rounded-t-lg border border-gray-200">
-      {/* Text Formatting Group */}
-      <ToolbarGroup>
-        <button
-          onClick={toggleBold}
-          className={`toolbar-btn ${isBold ? "bg-blue-100 text-blue-600" : ""}`}
-          title="Bold"
-        >
-          <Bold size={16} />
-        </button>
-        <button
-          onClick={toggleItalic}
-          className={`toolbar-btn ${
-            isItalic ? "bg-blue-100 text-blue-600" : ""
-          }`}
-          title="Italic"
-        >
-          <Italic size={16} />
-        </button>
-        <button
-          onClick={toggleUnderline}
-          className={`toolbar-btn ${
-            isUnderline ? "bg-blue-100 text-blue-600" : ""
-          }`}
-          title="Underline"
-        >
-          <Underline size={16} />
-        </button>
-        <button
-          onClick={toggleHighlight}
-          className={`toolbar-btn ${
-            isHighlighted ? "bg-blue-100 text-blue-600" : ""
-          }`}
-          title="Highlight"
-        >
-          <Droplet size={16} />
-        </button>
-      </ToolbarGroup>
-
-      {/* Font Controls Group */}
-      <ToolbarGroup>
-        <div className="flex items-center gap-1">
-          <Type size={16} className="text-gray-500" />
-          <select
-            value={fontFamily}
-            onChange={(e) => changeFontFamily(e.target.value)}
-            className="toolbar-select"
-            title="Font Family"
-          >
-            <option value="Arial">Arial</option>
-            <option value="Times New Roman">Times New Roman</option>
-            <option value="Courier New">Courier New</option>
-            <option value="Verdana">Verdana</option>
-            <option value="Georgia">Georgia</option>
-          </select>
-        </div>
-        <div className="flex items-center gap-1">
-          <select
-            value={fontSize}
-            onChange={(e) => changeFontSize(e.target.value)}
-            className="toolbar-select"
-            title="Font Size"
-          >
-            <option value="12px">12px</option>
-            <option value="14px">14px</option>
-            <option value="16px">16px</option>
-            <option value="18px">18px</option>
-            <option value="20px">20px</option>
-            <option value="24px">24px</option>
-          </select>
-        </div>
-      </ToolbarGroup>
-
-      {/* Color Controls Group */}
-      <ToolbarGroup>
-        <ColorPicker
-          color={textColor}
-          onChange={changeTextColor}
-          showColorPicker={showColorPicker}
-          setShowColorPicker={setShowColorPicker}
-        />
-        <div className="flex items-center gap-1" title="Highlight Color">
-          <Droplet size={16} className="text-gray-500" />
-          <input
-            type="color"
-            value={highlightColor}
-            onChange={(e) => setHighlightColor(e.target.value)}
-            className="toolbar-color"
-          />
-        </div>
-      </ToolbarGroup>
-
-      {/* Paragraph Formatting Group */}
-      <ToolbarGroup>
-        <button
-          onClick={() => alignText("Left")}
-          className="toolbar-btn"
-          title="Align Left"
-        >
-          <AlignLeft size={16} />
-        </button>
-        <button
-          onClick={() => alignText("Center")}
-          className="toolbar-btn"
-          title="Align Center"
-        >
-          <AlignCenter size={16} />
-        </button>
-        <button
-          onClick={() => alignText("Right")}
-          className="toolbar-btn"
-          title="Align Right"
-        >
-          <AlignRight size={16} />
-        </button>
-        <button onClick={indentText} className="toolbar-btn" title="Indent">
-          <ChevronRight size={16} />
-        </button>
-        <button onClick={outdentText} className="toolbar-btn" title="Outdent">
-          <ChevronLeft size={16} />
-        </button>
-      </ToolbarGroup>
-
-      {/* Headings Group */}
-      <ToolbarGroup>
-        <select
-          onChange={(e) => changeHeading(e.target.value)}
-          className="toolbar-select"
-          title="Headings"
-        >
-          <option value="">Normal Text</option>
-          <option value="1">Heading 1</option>
-          <option value="2">Heading 2</option>
-          <option value="3">Heading 3</option>
-        </select>
-      </ToolbarGroup>
-
-      {/* Content Insertion Group */}
-      <ToolbarGroup>
-        <button
-          onClick={() => insertList("unordered")}
-          className="toolbar-btn"
-          title="Bullet List"
-        >
-          <List size={16} />
-        </button>
-        <button
-          onClick={() => insertList("ordered")}
-          className="toolbar-btn"
-          title="Numbered List"
-        >
-          <ListOrdered size={16} />
-        </button>
-        <button
-          onClick={insertCheckboxList}
-          className="toolbar-btn"
-          title="Checkbox List"
-        >
-          <CheckSquare size={16} />
-        </button>
-        <TableToolbar editorRef={editorRef} />
-        <button
-          onClick={insertImage}
-          className="toolbar-btn"
-          title="Insert Image"
-        >
-          <Image size={16} />
-        </button>
-        <button onClick={insertCodeBlock} title="Insert Code Block">
-          <Code size={16} /> {/* Import from Lucide */}
-        </button>
-      </ToolbarGroup>
+      <TextFormattingGroup
+        isBold={isBold}
+        toggleBold={toggleBold}
+        isItalic={isItalic}
+        toggleItalic={toggleItalic}
+        isUnderline={isUnderline}
+        toggleUnderline={toggleUnderline}
+        isHighlighted={isHighlighted}
+        toggleHighlight={toggleHighlight}
+      />
+      <FontControlsGroup
+        fontFamily={fontFamily}
+        changeFontFamily={changeFontFamily}
+        fontSize={fontSize}
+        changeFontSize={changeFontSize}
+      />
+      <ColorControlsGroup
+        textColor={textColor}
+        changeTextColor={changeTextColor}
+        showColorPicker={showColorPicker}
+        setShowColorPicker={setShowColorPicker}
+        highlightColor={highlightColor}
+        setHighlightColor={setHighlightColor}
+      />
+      <ParagraphFormattingGroup
+        alignText={alignText}
+        indentText={indentText}
+        outdentText={outdentText}
+      />
+      <HeadingsGroup changeHeading={changeHeading} />
+      <ContentInsertionGroup
+        insertList={insertList}
+        insertCheckboxList={insertCheckboxList}
+        editorRef={editorRef}
+        insertImage={insertImage}
+        insertCodeBlock={insertCodeBlock}
+        insertAttachment={insertAttachment}
+      />
     </div>
   );
 };

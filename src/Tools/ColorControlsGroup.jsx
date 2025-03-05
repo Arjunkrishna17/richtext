@@ -1,6 +1,6 @@
 import React from "react";
 import { Droplet } from "lucide-react";
-import ColorPicker from "./ColorPicker";
+import ColorPicker from "../ColorPicker";
 
 const ColorControlsGroup = ({
   textColor,

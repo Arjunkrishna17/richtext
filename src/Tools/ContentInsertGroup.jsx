@@ -1,6 +1,13 @@
-import React from "react";
-import { List, ListOrdered, CheckSquare, Image, Code } from "lucide-react";
-import TableToolbar from "./TableToolbar";
+import React, { useRef } from "react";
+import {
+  List,
+  ListOrdered,
+  CheckSquare,
+  Image,
+  Code,
+  Paperclip,
+} from "lucide-react";
+import Table from "../Table";
 
 const ContentInsertionGroup = ({
   insertList,
@@ -8,7 +15,14 @@ const ContentInsertionGroup = ({
   editorRef,
   insertImage,
   insertCodeBlock,
+  insertAttachment,
 }) => {
+  const fileInputRef = useRef(null);
+
+  const handleFileSelect = (event) => {
+    insertAttachment(event.target.files);
+  };
+
   return (
     <div className="toolbar-group">
       <button
@@ -32,7 +46,7 @@ const ContentInsertionGroup = ({
       >
         <CheckSquare size={16} />
       </button>
-      <TableToolbar editorRef={editorRef} />
+      <Table editorRef={editorRef} />
       <button
         onClick={insertImage}
         className="toolbar-btn"
@@ -40,9 +54,28 @@ const ContentInsertionGroup = ({
       >
         <Image size={16} />
       </button>
-      <button onClick={insertCodeBlock} title="Insert Code Block">
+      <button
+        onClick={insertCodeBlock}
+        className="toolbar-btn"
+        title="Insert Code Block"
+      >
         <Code size={16} />
       </button>
+      <button
+        onClick={() => fileInputRef.current.click()}
+        className="toolbar-btn"
+        title="Attach File"
+      >
+        <Paperclip size={16} />
+      </button>
+      <input
+        type="file"
+        ref={fileInputRef}
+        style={{ display: "none" }}
+        accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.txt"
+        multiple
+        onChange={handleFileSelect}
+      />
     </div>
   );
 };
