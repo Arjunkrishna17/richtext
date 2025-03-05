@@ -1,13 +1,10 @@
 import React, { useEffect, useState } from "react";
-
-import * as pdfjsLib from "pdfjs-dist";
-// Explicitly set the worker source using a relative path
-import pdfWorker from "pdfjs-dist/build/pdf.worker?worker";
+import katex from "katex";
 
 import TextFormattingGroup from "./Tools/TextFormattingGroup";
 import FontControlsGroup from "./Tools/FontControlsGroup";
 import ColorControlsGroup from "./Tools/ColorControlsGroup";
-import ParagraphFormattingGroup from "./Tools/ParagraphFormattingGroup";
+import MoreTools from "./Tools/ParagraphFormattingGroup";
 import HeadingsGroup from "./Tools/HeadingGroup";
 import ContentInsertionGroup from "./Tools/ContentInsertGroup";
 import "prismjs";
@@ -41,8 +38,7 @@ import "prismjs/components/prism-perl";
 import "prismjs/components/prism-matlab";
 
 import Prism from "prismjs";
-
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
+import ListTools from "./Tools/MostUsedTools";
 
 const Toolbar = ({ editorRef }) => {
   const [isBold, setIsBold] = useState(false);
@@ -288,34 +284,109 @@ const Toolbar = ({ editorRef }) => {
     selection.addRange(newRange);
   };
 
-  const renderPDFPreview = async (file) => {
-    const reader = new FileReader();
-    reader.readAsArrayBuffer(file);
+  const insertLink = () => {
+    const url = prompt("Enter the link URL:", "https://");
+    if (!url) return;
 
-    return new Promise((resolve, reject) => {
-      reader.onload = async () => {
-        try {
-          const pdfData = new Uint8Array(reader.result);
-          const pdf = await pdfjsLib.getDocument({ data: pdfData }).promise;
-          const canvas = document.createElement("canvas");
+    const text = prompt("Enter the display text:", "Click here");
+    if (!text) return;
 
-          const page = await pdf.getPage(1); // Render only the first page
-          const viewport = page.getViewport({ scale: 1.5 });
-          const context = canvas.getContext("2d");
+    const selection = window.getSelection();
+    if (!selection.rangeCount) return;
 
-          canvas.width = viewport.width;
-          canvas.height = viewport.height;
+    const range = selection.getRangeAt(0);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.textContent = text;
+    anchor.target = "_blank";
+    anchor.style.color = "#007bff";
+    anchor.style.textDecoration = "underline";
 
-          await page.render({ canvasContext: context, viewport }).promise;
+    range.deleteContents();
+    range.insertNode(anchor);
 
-          resolve(canvas);
-        } catch (error) {
-          reject(error);
-        }
-      };
+    selection.removeAllRanges();
+    const newRange = document.createRange();
+    newRange.selectNodeContents(anchor);
+    newRange.collapse(false);
+    selection.addRange(newRange);
+  };
 
-      reader.onerror = (error) => reject(error);
-    });
+  const insertDivider = () => {
+    const selection = window.getSelection();
+    if (!selection.rangeCount) return;
+
+    const range = selection.getRangeAt(0);
+    const hr = document.createElement("hr");
+    hr.style.border = "none";
+    hr.style.height = "1px";
+    hr.style.backgroundColor = "#ccc";
+    hr.style.margin = "10px 0";
+
+    range.deleteContents();
+    range.insertNode(hr);
+
+    selection.removeAllRanges();
+    const newRange = document.createRange();
+    newRange.setStartAfter(hr);
+    selection.addRange(newRange);
+  };
+
+  const insertQuote = () => {
+    const selection = window.getSelection();
+    if (!selection.rangeCount) return;
+
+    const range = selection.getRangeAt(0);
+    const blockquote = document.createElement("blockquote");
+    blockquote.contentEditable = "true";
+    blockquote.style.borderLeft = "4px solid #007bff";
+    blockquote.style.margin = "10px 0";
+    blockquote.style.padding = "5px 10px";
+    blockquote.style.color = "#555";
+    blockquote.innerHTML = selection.toString() || "Enter quote here...";
+
+    range.deleteContents();
+    range.insertNode(blockquote);
+
+    selection.removeAllRanges();
+    const newRange = document.createRange();
+    newRange.selectNodeContents(blockquote);
+    newRange.collapse(false);
+    selection.addRange(newRange);
+  };
+
+  const insertFormula = () => {
+    const formula = prompt("Enter LaTeX formula:", "\\frac{a}{b}");
+    if (!formula) return;
+
+    const selection = window.getSelection();
+    if (!selection.rangeCount) return;
+
+    const range = selection.getRangeAt(0);
+    const span = document.createElement("span");
+    span.style.fontFamily = "monospace";
+    span.style.backgroundColor = "#f5f5f5";
+    span.style.padding = "5px";
+    span.style.borderRadius = "5px";
+
+    // Render the LaTeX formula with KaTeX
+    try {
+      katex.render(formula, span, {
+        throwOnError: false, // Prevent breaking on syntax errors
+      });
+    } catch (error) {
+      console.error("KaTeX rendering error:", error);
+      span.textContent = `Error rendering formula: ${formula}`;
+    }
+
+    range.deleteContents();
+    range.insertNode(span);
+
+    selection.removeAllRanges();
+    const newRange = document.createRange();
+    newRange.selectNodeContents(span);
+    newRange.collapse(false);
+    selection.addRange(newRange);
   };
 
   const insertAttachment = async (files) => {
@@ -326,65 +397,117 @@ const Toolbar = ({ editorRef }) => {
     const range = selection.getRangeAt(0);
 
     const attachmentContainer = document.createElement("div");
-    attachmentContainer.style.display = "flex";
-    attachmentContainer.style.flexDirection = "column";
-    attachmentContainer.style.margin = "10px 0";
-    attachmentContainer.style.border = "1px solid #ddd";
-    attachmentContainer.style.padding = "10px";
-    attachmentContainer.style.borderRadius = "5px";
-    attachmentContainer.style.background = "#f9f9f9";
+    Object.assign(attachmentContainer.style, {
+      display: "flex",
+      flexDirection: "column",
+      margin: "10px 0",
+      border: "1px solid #ddd",
+      padding: "10px",
+      borderRadius: "5px",
+      background: "#f9f9f9",
+      position: "relative",
+    });
 
     for (const file of files) {
       const fileType = file.type.split("/")[0];
+      const fileExtension = file.name.split(".").pop().toLowerCase();
+      const fileURL = URL.createObjectURL(file);
       let element;
 
       if (fileType === "image") {
+        // Handle image files
         element = document.createElement("img");
-        element.src = URL.createObjectURL(file);
-        element.style.maxWidth = "100%";
-        element.style.borderRadius = "5px";
-        element.style.marginBottom = "10px";
+        Object.assign(element, {
+          src: fileURL,
+          style: "max-width: 100%; border-radius: 5px; margin-bottom: 10px;",
+        });
       } else if (fileType === "video") {
+        // Handle video files
         element = document.createElement("video");
-        element.src = URL.createObjectURL(file);
-        element.controls = true;
-        element.style.maxWidth = "100%";
-        element.style.marginBottom = "10px";
+        Object.assign(element, {
+          src: fileURL,
+          controls: true,
+          style: "max-width: 100%; margin-bottom: 10px;",
+        });
       } else if (fileType === "audio") {
+        // Handle audio files
         element = document.createElement("audio");
-        element.src = URL.createObjectURL(file);
-        element.controls = true;
-        element.style.marginBottom = "10px";
-      } else if (file.type === "application/pdf") {
-        element = await renderPDFPreview(file);
+        Object.assign(element, {
+          src: fileURL,
+          controls: true,
+          style: "margin-bottom: 10px;",
+        });
       } else {
+        // Handle DOC, DOCX, XLS, XLSX, and other file types
         element = document.createElement("div");
-        element.style.display = "flex";
-        element.style.alignItems = "center";
-        element.style.marginBottom = "5px";
+        Object.assign(element.style, {
+          display: "flex",
+          alignItems: "center",
+          marginBottom: "5px",
+        });
 
         const link = document.createElement("a");
-        link.href = URL.createObjectURL(file);
-        link.textContent = `📎 ${file.name}`;
-        link.target = "_blank";
-        link.style.color = "#007bff";
-        link.style.textDecoration = "none";
-        link.style.marginLeft = "5px";
+        Object.assign(link, {
+          href: fileURL,
+          target: "_blank",
+          download: file.name,
+          style:
+            "color: #007bff; text-decoration: none; margin-left: 5px; cursor: pointer;",
+        });
+
+        // Set appropriate icons for file types
+        if (["doc", "docx"].includes(fileExtension)) {
+          link.innerHTML = `📄 Word Document: ${file.name}`;
+        } else if (["xls", "xlsx"].includes(fileExtension)) {
+          link.innerHTML = `📊 Excel Spreadsheet: ${file.name}`;
+        } else {
+          link.innerHTML = `📎 ${file.name}`;
+        }
 
         element.appendChild(link);
       }
 
+      // Add a "Remove" button
+      const removeButton = document.createElement("button");
+      removeButton.textContent = "❌";
+      Object.assign(removeButton.style, {
+        position: "absolute",
+        top: "5px",
+        right: "5px",
+        background: "red",
+        color: "white",
+        border: "none",
+        borderRadius: "5px",
+        cursor: "pointer",
+        padding: "2px 6px",
+      });
+
+      removeButton.onclick = () => {
+        attachmentContainer.remove();
+      };
+
       attachmentContainer.appendChild(element);
+      attachmentContainer.appendChild(removeButton);
     }
 
-    range.insertNode(attachmentContainer);
-    range.insertNode(document.createElement("br"));
+    // Add an empty paragraph (to move the cursor below the attachment)
+    const emptyParagraph = document.createElement("p");
+    emptyParagraph.innerHTML = "<br>"; // Ensures there is space to move cursor down
 
+    // Insert elements into the editor
+    range.collapse(false); // Move cursor to the end
+    range.insertNode(emptyParagraph);
+    range.insertNode(attachmentContainer);
+
+    // Move the cursor **after** the attachment
+    range.setStartAfter(emptyParagraph);
+    range.setEndAfter(emptyParagraph);
     selection.removeAllRanges();
+    selection.addRange(range);
   };
 
   return (
-    <div className="toolbar flex flex-wrap gap-1 p-2 bg-gray-50 rounded-t-lg border border-gray-200">
+    <div className="toolbar flex flex-wrap gap-2 p-2 bg-gray-50 rounded-t-lg border border-gray-200">
       <TextFormattingGroup
         isBold={isBold}
         toggleBold={toggleBold}
@@ -395,12 +518,15 @@ const Toolbar = ({ editorRef }) => {
         isHighlighted={isHighlighted}
         toggleHighlight={toggleHighlight}
       />
+
       <FontControlsGroup
         fontFamily={fontFamily}
         changeFontFamily={changeFontFamily}
         fontSize={fontSize}
         changeFontSize={changeFontSize}
       />
+
+      <ListTools insertList={insertList} />
       <ColorControlsGroup
         textColor={textColor}
         changeTextColor={changeTextColor}
@@ -409,12 +535,7 @@ const Toolbar = ({ editorRef }) => {
         highlightColor={highlightColor}
         setHighlightColor={setHighlightColor}
       />
-      <ParagraphFormattingGroup
-        alignText={alignText}
-        indentText={indentText}
-        outdentText={outdentText}
-      />
-      <HeadingsGroup changeHeading={changeHeading} />
+
       <ContentInsertionGroup
         insertList={insertList}
         insertCheckboxList={insertCheckboxList}
@@ -422,6 +543,16 @@ const Toolbar = ({ editorRef }) => {
         insertImage={insertImage}
         insertCodeBlock={insertCodeBlock}
         insertAttachment={insertAttachment}
+        insertLink={insertLink}
+        insertDivider={insertDivider}
+        insertQuote={insertQuote}
+        insertFormula={insertFormula}
+      />
+
+      <MoreTools
+        alignText={alignText}
+        indentText={indentText}
+        outdentText={outdentText}
       />
     </div>
   );
