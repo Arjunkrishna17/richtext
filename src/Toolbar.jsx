@@ -21,7 +21,16 @@ import {
   Heading1,
   Heading2,
   Heading3,
+  Code,
 } from "lucide-react";
+import TableToolbar from "./Table";
+import "prismjs";
+import "prismjs/themes/prism.css"; // You can use "prism-tomorrow.css" for dark mode
+import "prismjs/components/prism-javascript";
+import "prismjs/components/prism-python";
+import "prismjs/components/prism-css";
+// Add other languages as needed
+import Prism from "prismjs";
 
 const Toolbar = ({ editorRef }) => {
   const [isBold, setIsBold] = useState(false);
@@ -42,6 +51,51 @@ const Toolbar = ({ editorRef }) => {
   const toggleBold = () => {
     execCommand("bold");
     setIsBold(!isBold);
+  };
+
+  useEffect(() => {
+    Prism.highlightAll();
+  }, []);
+
+  const insertCodeBlock = () => {
+    const selection = window.getSelection();
+    if (!selection.rangeCount) return;
+
+    const range = selection.getRangeAt(0);
+    const container = document.createElement("div");
+    container.contentEditable = false; // Make the container non-editable
+
+    // Create a new instance of the CodeEditor component
+    const codeEditor = document.createElement("div");
+    codeEditor.innerHTML = `
+    <div
+      contentEditable="true"
+      spellCheck="false"
+      style="
+        font-family: monospace;
+        background: #1e1e1e;
+        color: #d4d4d4;
+        padding: 10px;
+        min-height: 200px;
+        border-radius: 5px;
+        outline: none;
+        white-space: pre-wrap;
+        overflow-wrap: break-word;
+      "
+    ></div>
+  `;
+
+    container.appendChild(codeEditor);
+    range.deleteContents();
+    range.insertNode(container);
+
+    // Move the cursor inside the new CodeEditor
+    const newRange = document.createRange();
+    const sel = window.getSelection();
+    newRange.setStart(codeEditor, 0);
+    newRange.setEnd(codeEditor, 0);
+    sel.removeAllRanges();
+    sel.addRange(newRange);
   };
 
   const toggleItalic = () => {
@@ -163,6 +217,73 @@ const Toolbar = ({ editorRef }) => {
 
         let node = selection.anchorNode;
         if (!node) return;
+        if (node.nodeType === Node.TEXT_NODE) {
+          node = node.parentElement;
+        }
+
+        // Check if the current selection is inside a code block
+        const codeBlock = node.closest("code");
+        if (
+          codeBlock &&
+          codeBlock.parentElement.tagName.toLowerCase() === "pre"
+        ) {
+          event.preventDefault();
+          // Insert a newline in the current code block instead of creating a new block
+          document.execCommand("insertText", false, "\n");
+          // Re-highlight the code block if needed
+          Prism.highlightElement(codeBlock);
+          return;
+        }
+
+        // Existing behavior for list items
+        const listItem = node.closest("li");
+        if (!listItem) return;
+
+        event.preventDefault();
+
+        const newListItem = document.createElement("li");
+        newListItem.contentEditable = "true";
+        const parentList = listItem.closest("ul");
+        const isChecklist = parentList?.querySelector("input[type='checkbox']");
+
+        if (isChecklist) {
+          newListItem.classList.add("checkbox-item");
+          const checkbox = document.createElement("input");
+          checkbox.type = "checkbox";
+          checkbox.style.marginRight = "8px";
+          const textNode = document.createElement("span");
+          textNode.contentEditable = "true";
+          textNode.style.flex = "1";
+          textNode.innerHTML = "&nbsp;";
+          newListItem.appendChild(checkbox);
+          newListItem.appendChild(textNode);
+        } else {
+          newListItem.innerHTML = "&nbsp;";
+        }
+
+        listItem.parentNode.insertBefore(newListItem, listItem.nextSibling);
+        selection.removeAllRanges();
+        const newRange = document.createRange();
+        newRange.selectNodeContents(newListItem);
+        newRange.collapse(false);
+        selection.addRange(newRange);
+      }
+    };
+
+    document.addEventListener("keydown", handleEnterPress);
+    return () => {
+      document.removeEventListener("keydown", handleEnterPress);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleEnterPress = (event) => {
+      if (event.key === "Enter") {
+        const selection = window.getSelection();
+        if (!selection.rangeCount) return;
+
+        let node = selection.anchorNode;
+        if (!node) return;
 
         if (node.nodeType === Node.TEXT_NODE) {
           node = node.parentElement;
@@ -230,13 +351,48 @@ const Toolbar = ({ editorRef }) => {
           const reader = new FileReader();
 
           reader.onload = (e) => {
+            const wrapper = document.createElement("div");
+            wrapper.contentEditable = false;
+            wrapper.style.position = "relative";
+            wrapper.style.display = "inline-block";
+            wrapper.style.border = "1px solid #ccc";
+            wrapper.style.resize = "both";
+            wrapper.style.overflow = "hidden";
+            wrapper.style.maxWidth = "100%";
+
             const img = document.createElement("img");
             img.src = e.target.result;
-            img.style.maxWidth = "100%"; // Prevent overflow
-            img.style.margin = "10px 0";
+            img.style.width = "100%"; // Allow resizing
+            img.style.height = "auto";
 
-            // Insert the image at the cursor position
-            insertNodeAtCursor(img);
+            const resizer = document.createElement("div");
+            resizer.style.width = "10px";
+            resizer.style.height = "10px";
+            resizer.style.background = "blue";
+            resizer.style.position = "absolute";
+            resizer.style.right = "0";
+            resizer.style.bottom = "0";
+            resizer.style.cursor = "se-resize";
+
+            resizer.addEventListener("mousedown", (e) => {
+              e.preventDefault();
+              document.addEventListener("mousemove", resizeImage);
+              document.addEventListener("mouseup", () => {
+                document.removeEventListener("mousemove", resizeImage);
+              });
+            });
+
+            function resizeImage(e) {
+              const rect = wrapper.getBoundingClientRect();
+              wrapper.style.width = e.clientX - rect.left + "px";
+              wrapper.style.height = e.clientY - rect.top + "px";
+            }
+
+            wrapper.appendChild(img);
+            wrapper.appendChild(resizer);
+
+            // Insert the wrapper at the cursor position
+            insertNodeAtCursor(wrapper);
           };
 
           reader.readAsDataURL(file);
@@ -249,10 +405,9 @@ const Toolbar = ({ editorRef }) => {
       if (!selection.rangeCount) return;
 
       const range = selection.getRangeAt(0);
-      range.deleteContents(); // Remove any existing selection
+      range.deleteContents();
       range.insertNode(node);
 
-      // Move cursor after the image
       range.setStartAfter(node);
       range.setEndAfter(node);
       selection.removeAllRanges();
@@ -265,22 +420,6 @@ const Toolbar = ({ editorRef }) => {
       document.removeEventListener("paste", handlePaste);
     };
   }, []);
-
-  const insertTable = () => {
-    const table = document.createElement("table");
-    table.setAttribute("border", "1");
-    table.classList.add("editor-table");
-    for (let i = 0; i < 2; i++) {
-      const row = document.createElement("tr");
-      for (let j = 0; j < 2; j++) {
-        const cell = document.createElement("td");
-        cell.innerHTML = "&nbsp;";
-        row.appendChild(cell);
-      }
-      table.appendChild(row);
-    }
-    execCommand("insertHTML", table.outerHTML);
-  };
 
   const insertImage = () => {
     const url = prompt("Enter the image URL:", "");
@@ -453,19 +592,16 @@ const Toolbar = ({ editorRef }) => {
         >
           <CheckSquare size={16} />
         </button>
-        <button
-          onClick={insertTable}
-          className="toolbar-btn"
-          title="Insert Table"
-        >
-          <Table size={16} />
-        </button>
+        <TableToolbar editorRef={editorRef} />
         <button
           onClick={insertImage}
           className="toolbar-btn"
           title="Insert Image"
         >
           <Image size={16} />
+        </button>
+        <button onClick={insertCodeBlock} title="Insert Code Block">
+          <Code size={16} /> {/* Import from Lucide */}
         </button>
       </ToolbarGroup>
     </div>

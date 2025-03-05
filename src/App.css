@@ -67,3 +67,13 @@
   margin-right: 5px;
   cursor: pointer;
 }
+
+
+.table-container {
+  position: relative; /* This makes the absolute buttons position correctly */
+  display: inline-block; /* Ensures it wraps around the table */
+}
+.add-row, .add-col {
+  position: absolute;
+  z-index: 10;
+}
