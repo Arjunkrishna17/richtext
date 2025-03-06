@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Type, ChevronDown, Heading1, Heading2, Heading3 } from "lucide-react";
 
-const FontControlsGroup = ({
+const Font = ({
   fontFamily,
   changeFontFamily,
   fontSize,
@@ -10,21 +10,68 @@ const FontControlsGroup = ({
 }) => {
   // Font configuration
   const fontFamilies = [
-    { value: "Arial", label: "Arial", sample: "Aa" },
-    { value: "Times New Roman", label: "Times", sample: "Aa" },
-    { value: "Courier New", label: "Courier", sample: "Aa" },
-    { value: "Verdana", label: "Verdana", sample: "Aa" },
-    { value: "Georgia", label: "Georgia", sample: "Aa" },
+    // Sans-serif fonts
+    { value: "Arial", label: "Arial", sample: "Aa", category: "Sans-serif" },
+    {
+      value: "Verdana",
+      label: "Verdana",
+      sample: "Aa",
+      category: "Sans-serif",
+    },
+    {
+      value: "Helvetica",
+      label: "Helvetica",
+      sample: "Aa",
+      category: "Sans-serif",
+    },
+
+    // Serif fonts
+    {
+      value: "Times New Roman",
+      label: "Times New Roman",
+      sample: "Aa",
+      category: "Serif",
+    },
+    { value: "Georgia", label: "Georgia", sample: "Aa", category: "Serif" },
+    { value: "Garamond", label: "Garamond", sample: "Aa", category: "Serif" },
+
+    // Monospace fonts
+    {
+      value: "Courier New",
+      label: "Courier New",
+      sample: "Aa",
+      category: "Monospace",
+    },
+    {
+      value: "Consolas",
+      label: "Consolas",
+      sample: "Aa",
+      category: "Monospace",
+    },
+    { value: "Monaco", label: "Monaco", sample: "Aa", category: "Monospace" },
+
+    // Fantasy fonts
+    { value: "Papyrus", label: "Papyrus", sample: "Aa", category: "Fantasy" },
+    { value: "Impact", label: "Impact", sample: "Aa", category: "Fantasy" },
+
+    // Cursive fonts
+    {
+      value: "Brush Script MT",
+      label: "Brush Script",
+      sample: "Aa",
+      category: "Cursive",
+    },
+    { value: "Lobster", label: "Lobster", sample: "Aa", category: "Cursive" },
   ];
 
-  const fontSizes = [
-    { value: "12px", label: "12" },
-    { value: "14px", label: "14" },
-    { value: "16px", label: "16" },
-    { value: "18px", label: "18" },
-    { value: "20px", label: "20" },
-    { value: "24px", label: "24" },
-  ];
+  const fontSizes = useMemo(
+    () =>
+      Array.from({ length: (96 - 12) / 2 + 1 }, (_, i) => {
+        const size = 12 + i * 2;
+        return { value: `${size}px`, label: `${size}` };
+      }),
+    []
+  );
 
   // Headings configuration
   const headingOptions = [
@@ -121,7 +168,7 @@ const FontControlsGroup = ({
         >
           {fontSizes.map((size) => (
             <option key={size.value} value={size.value}>
-              {size.label}px
+              {size.label}
             </option>
           ))}
         </select>
@@ -171,4 +218,4 @@ const FontControlsGroup = ({
   );
 };
 
-export default FontControlsGroup;
+export default Font;

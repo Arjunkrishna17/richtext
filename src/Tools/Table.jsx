@@ -1,7 +1,7 @@
-import React, { useRef } from "react";
+import React from "react";
 import { Table } from "lucide-react";
 
-const TableToolbar = ({ editorRef }) => {
+const TableTool = ({ editorRef }) => {
   const insertTable = () => {
     const table = document.createElement("table");
     table.setAttribute("border", "1");
@@ -79,12 +79,23 @@ const TableToolbar = ({ editorRef }) => {
   };
 
   return (
-    <div className="toolbar">
-      <button onClick={insertTable}>
-        <Table size={16} />
-      </button>
-    </div>
+    <button
+      onClick={insertTable}
+      className="flex flex-col items-center justify-center p-3 rounded-lg hover:bg-gray-50 transition-colors duration-150 group border border-gray-100 hover:border-gray-200"
+    >
+      <div
+        className={`w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mb-2 group-hover:scale-110 transition-transform`}
+      >
+        <Table size={20} className={"bg-blue-600"} />
+      </div>
+      <div className="text-center">
+        <div className="font-semibold text-sm text-gray-800">Table</div>
+        <div className="text-xs text-gray-500 mt-1 line-clamp-2">
+          Insert Table
+        </div>
+      </div>
+    </button>
   );
 };
 
-export default TableToolbar;
+export default TableTool;

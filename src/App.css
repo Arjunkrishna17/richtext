@@ -1,38 +1,3 @@
-/* Add this to your CSS file */
-.editor-container {
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 20px;
-}
-
-.toolbar {
-  margin-bottom: 10px;
-}
-
-.toolbar button {
-  background: #f4f4f4;
-  border: 1px solid #ccc;
-  padding: 5px 10px;
-  margin-right: 5px;
-  cursor: pointer;
-}
-
-.toolbar button.active {
-  background: #ddd;
-}
-
-.editor {
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  padding: 10px;
-  min-height: 200px;
-  outline: none;
-}
-
-.editor:focus {
-  border-color: #000;
-}
-
 .editor table {
   border-collapse: collapse;
   margin: 10px 0;
@@ -68,12 +33,16 @@
   cursor: pointer;
 }
 
-
 .table-container {
   position: relative; /* This makes the absolute buttons position correctly */
   display: inline-block; /* Ensures it wraps around the table */
 }
-.add-row, .add-col {
+.add-row,
+.add-col {
   position: absolute;
   z-index: 10;
+}
+
+.katex-html {
+  visibility: hidden;
 }
