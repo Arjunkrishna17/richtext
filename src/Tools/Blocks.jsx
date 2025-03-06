@@ -1,19 +1,19 @@
 import React, { useRef, useState, useEffect } from "react";
+import { MdFunctions } from "react-icons/md";
 import {
-  List,
-  ListOrdered,
-  CheckSquare,
-  Image,
-  Code,
-  Paperclip,
-  Link,
-  Minus,
-  Quote,
-  Sigma,
-  Plus,
-  ChevronDown,
-  X,
-} from "lucide-react";
+  FaListUl,
+  FaListOl,
+  FaCheckSquare,
+  FaImage,
+  FaCode,
+  FaPaperclip,
+  FaLink,
+  FaMinus,
+  FaQuoteRight,
+  FaPlus,
+  FaChevronDown,
+  FaTimes,
+} from "react-icons/fa"; // Import Font Awesome icons
 import TableTool from "./Table";
 
 const Blocks = ({
@@ -56,7 +56,7 @@ const Blocks = ({
   // Dropdown item configuration with colors and descriptions
   const dropdownItems = [
     {
-      icon: List,
+      icon: FaListUl,
       color: "text-blue-500",
       bgColor: "bg-blue-100",
       label: "Bullet List",
@@ -64,7 +64,7 @@ const Blocks = ({
       description: "Create a simple bullet list",
     },
     {
-      icon: ListOrdered,
+      icon: FaListOl,
       color: "text-blue-600",
       bgColor: "bg-blue-100",
       label: "Numbered List",
@@ -72,7 +72,7 @@ const Blocks = ({
       description: "Create a numbered list",
     },
     {
-      icon: CheckSquare,
+      icon: FaCheckSquare,
       color: "text-green-500",
       bgColor: "bg-green-100",
       label: "Checkbox List",
@@ -80,7 +80,7 @@ const Blocks = ({
       description: "Create a list with checkboxes",
     },
     {
-      icon: Image,
+      icon: FaImage,
       color: "text-purple-500",
       bgColor: "bg-purple-100",
       label: "Insert Image",
@@ -88,7 +88,7 @@ const Blocks = ({
       description: "Upload or embed an image",
     },
     {
-      icon: Code,
+      icon: FaCode,
       color: "text-indigo-500",
       bgColor: "bg-indigo-100",
       label: "Insert Code Block",
@@ -96,7 +96,7 @@ const Blocks = ({
       description: "Add a code snippet",
     },
     {
-      icon: Paperclip,
+      icon: FaPaperclip,
       color: "text-orange-500",
       bgColor: "bg-orange-100",
       label: "Attach File",
@@ -104,7 +104,7 @@ const Blocks = ({
       description: "Attach files to your document",
     },
     {
-      icon: Link,
+      icon: FaLink,
       color: "text-blue-500",
       bgColor: "bg-blue-100",
       label: "Insert Link",
@@ -112,7 +112,7 @@ const Blocks = ({
       description: "Add a hyperlink",
     },
     {
-      icon: Minus,
+      icon: FaMinus,
       color: "text-gray-500",
       bgColor: "bg-gray-100",
       label: "Insert Divider",
@@ -120,7 +120,7 @@ const Blocks = ({
       description: "Add a horizontal line",
     },
     {
-      icon: Quote,
+      icon: FaQuoteRight,
       color: "text-teal-500",
       bgColor: "bg-teal-100",
       label: "Insert Quote",
@@ -128,7 +128,7 @@ const Blocks = ({
       description: "Add a quotation",
     },
     {
-      icon: Sigma,
+      icon: MdFunctions,
       color: "text-red-500",
       bgColor: "bg-red-100",
       label: "Insert Formula",
@@ -152,10 +152,10 @@ const Blocks = ({
         className="flex items-center justify-between space-x-2 px-4 py-2 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition-all duration-200 shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-indigo-300"
       >
         <div className="flex items-center">
-          <Plus size={18} className="text-gray-700 mr-2" />
+          <FaPlus size={16} className="text-gray-700 mr-2" />
           <span className="font-medium text-gray-700">Blocks</span>
         </div>
-        <ChevronDown
+        <FaChevronDown
           size={16}
           className={`text-gray-500 transition-transform duration-200 ${
             isOpen ? "rotate-180" : ""
@@ -195,7 +195,7 @@ const Blocks = ({
                   onClick={() => setSearchTerm("")}
                   className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
                 >
-                  <X size={16} />
+                  <FaTimes size={16} />
                 </button>
               )}
             </div>

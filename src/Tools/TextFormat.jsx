@@ -1,5 +1,10 @@
 import React from "react";
-import { Bold, Italic, Underline, Highlighter } from "lucide-react";
+import {
+  MdFormatBold,
+  MdFormatItalic,
+  MdFormatUnderlined,
+  MdHighlight,
+} from "react-icons/md"; // Material Design Icons
 
 const TextFormat = ({
   isBold,
@@ -13,25 +18,25 @@ const TextFormat = ({
 }) => {
   const formattingOptions = [
     {
-      icon: Bold,
+      icon: MdFormatBold, // Use MdFormatBold
       isActive: isBold,
       onClick: toggleBold,
       title: "Bold",
     },
     {
-      icon: Italic,
+      icon: MdFormatItalic, // Use MdFormatItalic
       isActive: isItalic,
       onClick: toggleItalic,
       title: "Italic",
     },
     {
-      icon: Underline,
+      icon: MdFormatUnderlined, // Use MdFormatUnderlined
       isActive: isUnderline,
       onClick: toggleUnderline,
       title: "Underline",
     },
     {
-      icon: Highlighter,
+      icon: MdHighlight, // Use MdHighlight
       isActive: isHighlighted,
       onClick: toggleHighlight,
       title: "Highlight",
@@ -47,8 +52,8 @@ const TextFormat = ({
           title={option.title}
           className={`
             p-2 rounded-md transition-all duration-200 ease-in-out
-            ${option.isActive ? " " : ""}
-            hover:bg-gray-100,   
+            ${option.isActive ? "bg-indigo-500 text-white" : ""}
+            hover:bg-indigo-400 hover:text-white
           `}
         >
           <option.icon size={16} />

@@ -1,5 +1,5 @@
 import React from "react";
-import { Table } from "lucide-react";
+import { FaTable } from "react-icons/fa";
 
 const TableTool = ({ editorRef }) => {
   const insertTable = () => {
@@ -86,7 +86,7 @@ const TableTool = ({ editorRef }) => {
       <div
         className={`w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mb-2 group-hover:scale-110 transition-transform`}
       >
-        <Table size={20} className={"bg-blue-600"} />
+        <FaTable size={20} className={"bg-blue-600"} />
       </div>
       <div className="text-center">
         <div className="font-semibold text-sm text-gray-800">Table</div>

@@ -1,13 +1,15 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
-  AlignLeft,
-  AlignCenter,
-  AlignRight,
-  ChevronRight,
-  ChevronLeft,
-  ChevronDown,
-  Strikethrough,
-} from "lucide-react";
+  MdFormatAlignLeft,
+  MdFormatAlignCenter,
+  MdFormatAlignRight,
+  MdChevronRight,
+  MdChevronLeft,
+  MdKeyboardArrowDown,
+  MdStrikethroughS,
+} from "react-icons/md"; // Material Design Icons
+import { TbSuperscript } from "react-icons/tb";
+import { TbSubscript } from "react-icons/tb";
 
 const MoreTools = ({
   alignText,
@@ -32,72 +34,39 @@ const MoreTools = ({
   }, []);
 
   // Custom icons for superscript and subscript
-  const SuperscriptIcon = () => (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M3 19l8-8" />
-      <path d="M15 7h4v4" />
-    </svg>
-  );
-
-  const SubscriptIcon = () => (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M3 8l8 8" />
-      <path d="M15 17h4v-4" />
-    </svg>
-  );
 
   const paragraphOptions = [
     {
       type: "Left",
-      icon: AlignLeft,
+      icon: MdFormatAlignLeft, // Use MdFormatAlignLeft
       title: "Align Left",
       color: "text-blue-500",
       action: () => alignText("Left"),
     },
     {
       type: "Center",
-      icon: AlignCenter,
+      icon: MdFormatAlignCenter, // Use MdFormatAlignCenter
       title: "Align Center",
       color: "text-green-500",
       action: () => alignText("Center"),
     },
     {
       type: "Right",
-      icon: AlignRight,
+      icon: MdFormatAlignRight, // Use MdFormatAlignRight
       title: "Align Right",
       color: "text-purple-500",
       action: () => alignText("Right"),
     },
     {
       type: "Indent",
-      icon: ChevronRight,
+      icon: MdChevronRight, // Use MdChevronRight
       title: "Indent",
       color: "text-orange-500",
       action: indentText,
     },
     {
       type: "Outdent",
-      icon: ChevronLeft,
+      icon: MdChevronLeft, // Use MdChevronLeft
       title: "Outdent",
       color: "text-red-500",
       action: outdentText,
@@ -107,21 +76,21 @@ const MoreTools = ({
   const textFormatOptions = [
     {
       type: "Strikethrough",
-      icon: Strikethrough,
+      icon: MdStrikethroughS, // Use MdStrikethroughS
       title: "Strikethrough",
       color: "text-pink-500",
       action: () => formatText("strikethrough"),
     },
     {
       type: "Superscript",
-      icon: SuperscriptIcon,
+      icon: TbSuperscript, // Custom icon (unchanged)
       title: "Superscript",
       color: "text-indigo-500",
       action: () => formatText("superscript"),
     },
     {
       type: "Subscript",
-      icon: SubscriptIcon,
+      icon: TbSubscript, // Custom icon (unchanged)
       title: "Subscript",
       color: "text-teal-500",
       action: () => formatText("subscript"),
@@ -132,7 +101,7 @@ const MoreTools = ({
   const allOptions = [...paragraphOptions, ...textFormatOptions];
 
   return (
-    <div className="relative inline-block" ref={dropdownRef}>
+    <div className="relative  items-center flex" ref={dropdownRef}>
       {/* Dropdown Trigger Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
@@ -152,7 +121,7 @@ const MoreTools = ({
         "
       >
         <span className="text-sm text-gray-700">More</span>
-        <ChevronDown
+        <MdKeyboardArrowDown
           size={16}
           className={`
             text-gray-500 
@@ -169,6 +138,7 @@ const MoreTools = ({
           className="
           absolute 
           left-0 
+          top-10
           mt-2 
           w-48 
           bg-white 

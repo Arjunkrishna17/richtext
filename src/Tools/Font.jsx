@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
-import { Type, ChevronDown, Heading1, Heading2, Heading3 } from "lucide-react";
+import { MdTitle, MdKeyboardArrowDown, MdTextFields } from "react-icons/md";
+
 
 const Font = ({
   fontFamily,
@@ -78,25 +79,25 @@ const Font = ({
     {
       value: "",
       label: "Normal",
-      icon: Type,
+      icon: MdTextFields, // Use MdTextFields for normal text
       className: "text-gray-600",
     },
     {
       value: "1",
       label: "Heading 1",
-      icon: Heading1,
+      icon: MdTitle, // Use MdTitle for headings
       className: "text-blue-600 font-bold",
     },
     {
       value: "2",
       label: "Heading 2",
-      icon: Heading2,
+      icon: MdTitle, // Use MdTitle for headings
       className: "text-green-600 font-semibold",
     },
     {
       value: "3",
       label: "Heading 3",
-      icon: Heading3,
+      icon: MdTitle, // Use MdTitle for headings
       className: "text-purple-600 font-medium",
     },
   ];
@@ -138,7 +139,7 @@ const Font = ({
           ))}
         </select>
         <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
-          <ChevronDown size={16} />
+          <MdKeyboardArrowDown size={16} /> {/* Use FiChevronDown */}
         </div>
       </div>
 
@@ -173,7 +174,7 @@ const Font = ({
           ))}
         </select>
         <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
-          <ChevronDown size={16} />
+          <MdKeyboardArrowDown size={16} /> {/* Use FiChevronDown */}
         </div>
       </div>
 
@@ -211,7 +212,7 @@ const Font = ({
           ))}
         </select>
         <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
-          <ChevronDown size={16} />
+          <MdKeyboardArrowDown size={16} /> {/* Use FiChevronDown */}
         </div>
       </div>
     </div>

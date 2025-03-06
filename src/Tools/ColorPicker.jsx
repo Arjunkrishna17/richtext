@@ -1,4 +1,4 @@
-import { Palette } from "lucide-react";
+import { MdPalette } from "react-icons/md";
 import React from "react";
 import { SketchPicker } from "react-color";
 
@@ -10,7 +10,7 @@ const ColorPicker = ({
 }) => {
   return (
     <div className="flex items-center gap-1" title="Text Color">
-      <Palette size={16} className="text-gray-500" />
+      <MdPalette size={16} className="text-gray-500" />
       <button
         onClick={() => setShowColorPicker(!showColorPicker)}
         className="toolbar-btn"

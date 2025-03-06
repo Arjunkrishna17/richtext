@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
+import { FiDroplet, FiX } from "react-icons/fi";
 
-import { Droplet, X } from "lucide-react";
 import ColorPicker from "./ColorPicker";
 
 const Colors = ({ execCommand }) => {
@@ -62,7 +62,7 @@ const Colors = ({ execCommand }) => {
           style={{ background: textColor }}
           title="Text Color"
         >
-          <Droplet size={16} />
+          <FiDroplet size={16} />
 
           {/* Clear button that appears when color is selected */}
           {textColor && (
@@ -71,7 +71,7 @@ const Colors = ({ execCommand }) => {
               className="absolute -top-2 -right-2 bg-gray-200 hover:bg-gray-300 rounded-full p-1 transition-all"
               title="Clear color"
             >
-              <X size={12} className="text-gray-700" />
+              <FiX size={12} className="text-gray-700" />
             </button>
           )}
         </button>
